@@ -1,0 +1,18 @@
+[package]
+name = "text-to-speech-app"
+version = "0.1.0"
+description = "A Tauri App"
+authors = ["you"]
+edition = "2021"
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+uuid = { version = "1.0", features = ["v4"] }
+base64 = "0.22"
+reqwest = { version = "0.12", features = ["blocking"] }
+tokio = { version = "1", features = ["full"] }
