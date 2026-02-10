@@ -1,0 +1,8 @@
+{
+  "builds": [
+    {
+      "src": "api/tts.py",
+      "use": "@vercel/python"
+    }
+  ]
+}
