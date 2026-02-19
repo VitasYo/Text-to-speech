@@ -1,142 +1,141 @@
 <template>
   <div class="app">
-    <div class="container">
-      <header class="header">
-        <h1>🔊 Text to Speech</h1>
-        <p>Озвучка текста из файлов, картинок и веб-страниц</p>
-      </header>
+    <header class="header">
+      <h1>🔊 Text to Speech</h1>
+      <p>Озвучка текста из файлов, картинок и веб-страниц</p>
+    </header>
 
-      <main class="main-content">
-        <!-- Панель загрузки -->
-        <div class="upload-section">
-          <button @click="selectFile" class="btn btn-primary">
-            📁 Загрузить файл
-          </button>
-          <input 
-            type="file" 
-            ref="fileInput" 
-            @change="handleFileUpload"
-            accept=".txt,.docx,.png,.jpg,.jpeg,.gif,.webp"
-            style="display: none"
-          >
-          <span class="file-info" v-if="fileName">{{ fileName }}</span>
-          <span v-if="isProcessing" class="processing">⏳ Обработка...</span>
-        </div>
-
-        <!-- Поле для URL веб-страницы -->
-        <div class="url-section">
-          <input 
-            v-model="webUrl"
-            type="text"
-            placeholder="Вставьте URL веб-страницы"
-            class="url-input"
-          >
-          <button @click="fetchWebPage" class="btn btn-secondary" :disabled="!webUrl || isProcessing">
-            🌐 Загрузить
-          </button>
-        </div>
-
-        <!-- Текстовая область -->
-        <div class="text-section">
-          <textarea 
-            v-model="textContent"
-            placeholder="Загрузите файл, картинку, веб-страницу или вставьте текст сюда..."
-            class="text-area"
-          ></textarea>
-        </div>
-
-        <!-- Прогресс-бар озвучки -->
-        <div v-if="isSpeaking || isPaused" class="progress-section">
-          <div class="progress-bar">
-            <div class="progress-fill" :style="{ width: progress + '%' }"></div>
-          </div>
-          <div class="progress-time">
-            {{ formatTime(currentTime) }} / {{ formatTime(duration) }}
-          </div>
-        </div>
-
-        <!-- Панель управления воспроизведением -->
-        <div class="controls-section">
-          <button 
-            @click="togglePlayPause" 
-            class="btn btn-success"
-            :disabled="!textContent || isGenerating"
-          >
-            {{ isPaused ? '▶️ Продолжить' : (isSpeaking ? '⏸️ Пауза' : '▶️ Озвучить') }}
-          </button>
-          <button 
-            @click="stop" 
-            class="btn btn-danger"
-            :disabled="!isSpeaking && !isPaused"
-          >
-            ⏹️ Стоп
-          </button>
-          <button 
-            @click="downloadAudio" 
-            class="btn btn-info"
-            :disabled="!textContent || isGenerating"
-          >
-            {{ isGenerating ? '⏳ Генерация...' : '💾 Скачать MP3' }}
-          </button>
-        </div>
-
-        <!-- Настройки голоса -->
-        <div class="settings-section">
-          <div class="setting">
-            <label>Голос:</label>
-            <select v-model="edgeVoice" class="select">
-              <optgroup label="Русские голоса">
-                <option value="ru-RU-DmitryNeural">Дмитрий (мужской)</option>
-                <option value="ru-RU-SvetlanaNeural">Светлана (женский)</option>
-              </optgroup>
-              <optgroup label="Английские голоса">
-                <option value="en-US-GuyNeural">Guy (мужской)</option>
-                <option value="en-US-JennyNeural">Jenny (женский)</option>
-              </optgroup>
-            </select>
-          </div>
-
-          <div class="settings-row">
-            <div class="setting">
-              <label>Скорость: {{ rate }}</label>
-              <input 
-                type="range" 
-                v-model="rate" 
-                min="0.5" 
-                max="2" 
-                step="0.1"
-                class="slider"
-              >
-            </div>
-
-            <div class="setting">
-              <label>Высота: {{ pitch }}</label>
-              <input 
-                type="range" 
-                v-model="pitch" 
-                min="0.5" 
-                max="2" 
-                step="0.1"
-                class="slider"
-              >
-            </div>
-          </div>
-        </div>
-      </main>
-
-      <!-- Уведомление -->
-      <div v-if="showNotification" class="notification">
-        {{ notificationMessage }}
+    <main class="main-content">
+      <!-- Панель загрузки -->
+      <div class="upload-section">
+        <button @click="selectFile" class="btn btn-primary">
+          📁 Загрузить файл
+        </button>
+        <input 
+          type="file" 
+          ref="fileInput" 
+          @change="handleFileUpload"
+          accept=".txt,.docx,image/*"
+          style="display: none"
+        >
+        <span class="file-info" v-if="fileName">{{ fileName }}</span>
+        <span v-if="isProcessing" class="processing">⏳ Обработка...</span>
       </div>
+
+      <!-- Поле для URL веб-страницы -->
+      <div class="url-section">
+        <input 
+          v-model="webUrl"
+          type="text"
+          placeholder="Вставьте URL веб-страницы"
+          class="url-input"
+        >
+        <button @click="fetchWebPage" class="btn btn-secondary" :disabled="!webUrl || isProcessing">
+          🌐 Загрузить
+        </button>
+      </div>
+
+      <!-- Текстовая область -->
+      <div class="text-section">
+        <textarea 
+          v-model="textContent"
+          placeholder="Загрузите файл, картинку, веб-страницу или вставьте текст сюда..."
+          class="text-area"
+        ></textarea>
+      </div>
+
+      <!-- Прогресс-бар озвучки -->
+      <div v-if="isSpeaking || isPaused" class="progress-section">
+        <div class="progress-bar">
+          <div class="progress-fill" :style="{ width: progress + '%' }"></div>
+        </div>
+        <div class="progress-time">
+          {{ formatTime(currentTime) }} / {{ formatTime(duration) }}
+        </div>
+      </div>
+
+      <!-- Панель управления воспроизведением -->
+      <div class="controls-section">
+        <button 
+          @click="togglePlayPause" 
+          class="btn btn-success"
+          :disabled="!textContent || isGenerating"
+        >
+          {{ isPaused ? '▶️ Продолжить' : (isSpeaking ? '⏸️ Пауза' : '▶️ Озвучить') }}
+        </button>
+        <button 
+          @click="stop" 
+          class="btn btn-danger"
+          :disabled="!isSpeaking && !isPaused"
+        >
+          ⏹️ Стоп
+        </button>
+        <button 
+          @click="downloadAudio" 
+          class="btn btn-info"
+          :disabled="!textContent || isGenerating"
+        >
+          {{ isGenerating ? '⏳ Генерация...' : '💾 Скачать MP3' }}
+        </button>
+      </div>
+
+      <!-- Настройки голоса -->
+      <div class="settings-section">
+        <div class="setting">
+          <label>Голос:</label>
+          <select v-model="edgeVoice" class="select">
+            <optgroup label="Русские голоса">
+              <option value="ru-RU-DmitryNeural">Дмитрий (мужской)</option>
+              <option value="ru-RU-SvetlanaNeural">Светлана (женский)</option>
+            </optgroup>
+            <optgroup label="Английские голоса">
+              <option value="en-US-GuyNeural">Guy (мужской)</option>
+              <option value="en-US-JennyNeural">Jenny (женский)</option>
+            </optgroup>
+          </select>
+        </div>
+
+        <div class="setting">
+          <label>Скорость: {{ rate }}</label>
+          <input 
+            type="range" 
+            v-model="rate" 
+            min="0.5" 
+            max="2" 
+            step="0.1"
+            class="slider"
+          >
+        </div>
+
+        <div class="setting">
+          <label>Высота: {{ pitch }}</label>
+          <input 
+            type="range" 
+            v-model="pitch" 
+            min="0.5" 
+            max="2" 
+            step="0.1"
+            class="slider"
+          >
+        </div>
+      </div>
+    </main>
+
+    <!-- Уведомление -->
+    <div v-if="showNotification" class="notification">
+      {{ notificationMessage }}
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onUnmounted } from 'vue';
+import { ref, onMounted, onUnmounted } from 'vue';
 import { createWorker } from 'tesseract.js';
-import { invoke } from '@tauri-apps/api/core';
 import mammoth from 'mammoth';
+
+// Определяем окружение
+const isDesktop = ref(false);
+let invoke: any = null;
 
 // Состояние
 const textContent = ref('');
@@ -167,6 +166,16 @@ const pitch = ref(1);
 let currentAudio: HTMLAudioElement | null = null;
 let currentAudioUrl: string | null = null;
 
+// Определение окружения при монтировании
+onMounted(async () => {
+  // Проверяем, запущено ли в Tauri
+  if ((window as any).__TAURI__) {
+    isDesktop.value = true;
+    const module = await import('@tauri-apps/api/core');
+    invoke = module.invoke;
+  }
+});
+
 // Уведомления
 function notify(message: string, duration: number = 3000) {
   notificationMessage.value = message;
@@ -182,6 +191,16 @@ function formatTime(seconds: number): string {
   const mins = Math.floor(seconds / 60);
   const secs = Math.floor(seconds % 60);
   return `${mins}:${secs.toString().padStart(2, '0')}`;
+}
+
+// Очистка текста
+function cleanText(text: string): string {
+  return text
+    .replace(/https?:\/\/[^\s]+/g, '')
+    .replace(/[\w.-]+@[\w.-]+\.\w+/g, '')
+    .replace(/<[^>]*>/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
 }
 
 // Обновление прогресса
@@ -292,7 +311,17 @@ async function fetchWebPage() {
   isProcessing.value = true;
   
   try {
-    const html = await invoke('fetch_webpage', { url: webUrl.value }) as string;
+    let html: string;
+    
+    if (isDesktop.value && invoke) {
+      // Десктоп - используем Tauri
+      html = await invoke('fetch_webpage', { url: webUrl.value }) as string;
+    } else {
+      // Веб - используем CORS proxy
+      const response = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(webUrl.value)}`);
+      const data = await response.json();
+      html = data.contents;
+    }
     
     const parser = new DOMParser();
     const doc = parser.parseFromString(html, 'text/html');
@@ -349,10 +378,13 @@ async function generateAudio(): Promise<string> {
   const text = textContent.value;
   const voice = edgeVoice.value;
   
-  // ОЧИЩАЕМ ТЕКСТ
+  // Очищаем текст
   const cleanedText = cleanText(text);
   
-  const maxLength = 3000;
+  console.log('Текст для озвучки:', cleanedText.substring(0, 200) + '...');
+  console.log('Длина текста:', cleanedText.length);
+  
+  const maxLength = 5000;
   let textToSpeak = cleanedText;
   
   if (cleanedText.length > maxLength) {
@@ -365,31 +397,51 @@ async function generateAudio(): Promise<string> {
   
   notify('⏳ Генерация аудио... Пожалуйста, подождите', 10000);
   
-  const base64Audio = await invoke('generate_speech', {
-    text: textToSpeak,
-    voice: voice,
-    rate: rateValue,
-    pitch: pitchValue
-  }) as string;
-  
-  return base64Audio;
-}
-
-function cleanText(text: string): string {
-  return text
-    // Убираем URL-ы
-    .replace(/https?:\/\/[^\s]+/g, '')
-    // Убираем email
-    .replace(/[\w.-]+@[\w.-]+\.\w+/g, '')
-    // Убираем HTML теги (если остались)
-    .replace(/<[^>]*>/g, '')
-    // Убираем множественные пробелы
-    .replace(/\s+/g, ' ')
-    .trim();
+  if (isDesktop.value && invoke) {
+    // Десктопная версия - используем Tauri
+    const base64Audio = await invoke('generate_speech', {
+      text: textToSpeak,
+      voice: voice,
+      rate: rateValue,
+      pitch: pitchValue
+    }) as string;
+    
+    return base64Audio;
+  } else {
+    // Веб-версия - используем API
+    try {
+      const response = await fetch('/api/tts', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          text: textToSpeak,
+          voice: voice,
+          rate: rateValue,
+          pitch: pitchValue
+        })
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      
+      if (data.error) {
+        throw new Error(data.error);
+      }
+      
+      return data.audio;
+    } catch (error) {
+      console.error('API error:', error);
+      throw new Error(`Ошибка API: ${error}`);
+    }
+  }
 }
 
 async function togglePlayPause() {
-  // Если на паузе - продолжаем
   if (isPaused.value && currentAudio) {
     await currentAudio.play();
     isSpeaking.value = true;
@@ -398,7 +450,6 @@ async function togglePlayPause() {
     return;
   }
   
-  // Если играет - ставим на паузу
   if (isSpeaking.value && currentAudio) {
     currentAudio.pause();
     isSpeaking.value = false;
@@ -406,13 +457,12 @@ async function togglePlayPause() {
     return;
   }
   
-  // Иначе - начинаем новое воспроизведение
   await speak();
 }
 
 async function speak() {
   try {
-    // ВАЖНО: Полностью очищаем предыдущее аудио
+    // ПОЛНАЯ ОЧИСТКА ВСЕХ АУДИО
     if (currentAudio) {
       currentAudio.pause();
       currentAudio.src = '';
@@ -423,6 +473,13 @@ async function speak() {
       URL.revokeObjectURL(currentAudioUrl);
       currentAudioUrl = null;
     }
+    
+    // Останавливаем ВСЕ медиа на странице
+    document.querySelectorAll('audio, video').forEach((media: any) => {
+      media.pause();
+      media.src = '';
+      media.load();
+    });
     
     stopProgressTracking();
     
@@ -461,14 +518,13 @@ async function speak() {
         URL.revokeObjectURL(currentAudioUrl);
         currentAudioUrl = null;
       }
+      notify('✅ Воспроизведение завершено');
     };
     
-    currentAudio.onerror = (e) => {
-      console.info('Воспроизведение остановлено:', e);
+    currentAudio.onerror = () => {
       isSpeaking.value = false;
       isPaused.value = false;
       stopProgressTracking();
-      notify('Воспроизведение остановлено');
     };
     
     await currentAudio.play();
@@ -537,20 +593,11 @@ function stop() {
   isSpeaking.value = false;
   isPaused.value = false;
   stopProgressTracking();
+  notify('⏹️ Воспроизведение остановлено');
 }
 </script>
 
 <style scoped>
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-body {
-  margin: 0;
-}
-
 .app {
   min-height: 100vh;
   height: 100vh;
@@ -562,47 +609,6 @@ body {
   align-items: center;
   justify-content: center;
   overflow: hidden;
-}
-
-.container {
-  width: 100%;
-  max-width: 800px;
-  max-height: 90vh; /* Ограничиваем максимальную высоту */
-  display: flex;
-  flex-direction: column;
-  padding: 20px;
-  overflow-y: auto;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 20px;
-  backdrop-filter: blur(10px);
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-}
-
-/* Адаптивные стили для маленьких экранов */
-@media (max-width: 840px) {
-  .app {
-    padding: 10px;
-  }
-  
-  .container {
-    border-radius: 15px;
-    padding: 15px;
-  }
-}
-
-@media (max-width: 600px) {
-  .app {
-    padding: 5px;
-  }
-  
-  .container {
-    border-radius: 12px;
-    padding: 12px;
-  }
-  
-  .header h1 {
-    font-size: 1.7em;
-  }
 }
 
 .header {
@@ -874,84 +880,23 @@ body {
   }
 }
 
-/* Адаптивность для маленьких экранов */
-@media (max-width: 600px) {
-  .container {
-    padding: 12px;
+@media (max-width: 768px) {
+  .app {
+    padding: 1rem;
   }
   
   .main-content {
-    padding: 15px;
-  }
-  
-  .header h1 {
-    font-size: 1.5em;
-  }
-  
-  .header p {
-    font-size: 0.8em;
-  }
-  
-  .btn {
-    padding: 8px 12px;
-    font-size: 13px;
-    min-width: 100px;
+    padding: 1.25rem;
+    max-height: calc(100vh - 6rem);
   }
   
   .controls-section {
-    gap: 5px;
-  }
-  
-  .settings-row {
-    grid-template-columns: 1fr; /* Вертикальное расположение на маленьких экранах */
-    gap: 10px;
-  }
-  
-  .upload-section {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 8px;
-  }
-  
-  .file-info {
-    max-width: 100%;
-    text-align: center;
-  }
-  
-  .url-section {
-    flex-direction: column;
-  }
-  
-  .text-area {
-    min-height: 120px;
-    max-height: 300px;
-    font-size: 13px;
-  }
-}
-
-/* Для очень маленьких экранов */
-@media (max-width: 400px) {
-  .app {
-    padding: 5px;
-  }
-  
-  .container {
-    padding: 8px;
-    border-radius: 10px;
-  }
-  
-  .main-content {
-    padding: 12px;
-  }
-  
-  .header h1 {
-    font-size: 1.3em;
+    justify-content: center;
   }
   
   .btn {
-    min-width: 80px;
-    padding: 6px 10px;
-    font-size: 12px;
+    flex: 1;
+    min-width: 100px;
   }
 }
 </style>

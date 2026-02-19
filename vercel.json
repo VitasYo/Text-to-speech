@@ -1,8 +1,16 @@
 {
-  "builds": [
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "rewrites": [
     {
-      "src": "api/tts.py",
-      "use": "@vercel/python"
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
-  ]
+  ],
+  "functions": {
+    "api/tts.py": {
+      "runtime": "python3.9",
+      "maxDuration": 60
+    }
+  }
 }
