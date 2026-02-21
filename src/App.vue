@@ -6,6 +6,13 @@
     </header>
 
     <main class="main-content">
+       <!-- Предупреждение для веб-версии -->
+      <div v-if="!isDesktop" class="web-notice">
+        ℹ️ Веб-версия использует браузерную озвучку. 
+        Для качественной озвучки скачайте 
+        <a href="https://github.com/твой-репозиторий/releases" target="_blank">десктопное приложение</a>
+      </div>
+
       <!-- Панель загрузки -->
       <div class="upload-section">
         <button @click="selectFile" class="btn btn-primary">
@@ -376,13 +383,9 @@ async function fetchWebPage() {
 
 async function generateAudio(): Promise<string> {
   const text = textContent.value;
-  const voice = edgeVoice.value;
   
   // Очищаем текст
   const cleanedText = cleanText(text);
-  
-  console.log('Текст для озвучки:', cleanedText.substring(0, 200) + '...');
-  console.log('Длина текста:', cleanedText.length);
   
   const maxLength = 5000;
   let textToSpeak = cleanedText;
@@ -395,49 +398,21 @@ async function generateAudio(): Promise<string> {
   const rateValue = rate.value.toString();
   const pitchValue = pitch.value.toString();
   
-  notify('⏳ Генерация аудио... Пожалуйста, подождите', 10000);
-  
   if (isDesktop.value && invoke) {
     // Десктопная версия - используем Tauri
+    notify('⏳ Генерация аудио...', 10000);
+    
     const base64Audio = await invoke('generate_speech', {
       text: textToSpeak,
-      voice: voice,
+      voice: edgeVoice.value,
       rate: rateValue,
       pitch: pitchValue
     }) as string;
     
     return base64Audio;
   } else {
-    // Веб-версия - используем API
-    try {
-      const response = await fetch('/api/tts', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          text: textToSpeak,
-          voice: voice,
-          rate: rateValue,
-          pitch: pitchValue
-        })
-      });
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      
-      const data = await response.json();
-      
-      if (data.error) {
-        throw new Error(data.error);
-      }
-      
-      return data.audio;
-    } catch (error) {
-      console.error('API error:', error);
-      throw new Error(`Ошибка API: ${error}`);
-    }
+    // Веб-версия - используем БРАУЗЕРНЫЙ TTS (не API)
+    throw new Error('На веб-версии используйте браузерный TTS. Edge TTS доступен только в десктопном приложении.');
   }
 }
 
@@ -641,6 +616,23 @@ function stop() {
   flex-direction: column;
   max-height: calc(100vh - 10rem);
   overflow: hidden;
+}
+
+.web-notice {
+  background: #fef3c7;
+  border: 2px solid #f59e0b;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  margin-bottom: 1rem;
+  font-size: 0.875rem;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.web-notice a {
+  color: #667eea;
+  font-weight: 600;
+  text-decoration: underline;
 }
 
 .upload-section {
