@@ -184,7 +184,7 @@ onMounted(async () => {
 });
 
 // Уведомления
-function notify(message: string, duration: number = 3000) {
+function notify(message: string, duration: number = 5000) {
   notificationMessage.value = message;
   showNotification.value = true;
   setTimeout(() => {

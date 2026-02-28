@@ -4,6 +4,7 @@ import subprocess
 import base64
 import tempfile
 import os
+import sys
 
 class handler(BaseHTTPRequestHandler):
     def do_OPTIONS(self):
@@ -36,9 +37,9 @@ class handler(BaseHTTPRequestHandler):
                 tmp_path = tmp.name
             
             try:
-                # Вызываем edge-tts
+                # ВАЖНО: Используем python -m edge_tts
                 result = subprocess.run([
-                    'edge-tts',
+                    sys.executable, '-m', 'edge_tts',
                     '--text', text,
                     '--voice', voice,
                     '--rate', rate_str,
@@ -52,6 +53,9 @@ class handler(BaseHTTPRequestHandler):
                 # Читаем аудио
                 with open(tmp_path, 'rb') as f:
                     audio_data = f.read()
+                
+                if len(audio_data) == 0:
+                    raise Exception("Generated audio file is empty")
                 
                 base64_audio = base64.b64encode(audio_data).decode('utf-8')
                 
