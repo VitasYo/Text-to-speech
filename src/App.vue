@@ -645,23 +645,6 @@ function stop() {
   overflow: hidden;
 }
 
-.web-notice {
-  background: #fef3c7;
-  border: 2px solid #f59e0b;
-  padding: 0.75rem;
-  border-radius: 0.5rem;
-  margin-bottom: 1rem;
-  font-size: 0.875rem;
-  text-align: center;
-  flex-shrink: 0;
-}
-
-.web-notice a {
-  color: #667eea;
-  font-weight: 600;
-  text-decoration: underline;
-}
-
 .upload-section {
   display: flex;
   align-items: center;
