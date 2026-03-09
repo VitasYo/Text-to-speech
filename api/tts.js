@@ -1,5 +1,12 @@
+import { exec } from 'child_process';
+import { promisify } from 'util';
+import { writeFile, readFile, unlink } from 'fs/promises';
+import { tmpdir } from 'os';
+import { join } from 'path';
+
+const execAsync = promisify(exec);
+
 export default async function handler(req, res) {
-  // CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -19,10 +26,6 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Text is required' });
     }
 
-    // Используем динамический импорт для edge-tts
-    const edgeTTS = await import('edge-tts');
-    
-    // Ограничиваем длину
     const textToSpeak = text.substring(0, 5000);
 
     // Преобразуем параметры
@@ -36,31 +39,44 @@ export default async function handler(req, res) {
       ? `+${Math.round((pitchF - 1) * 10)}Hz` 
       : `${Math.round((pitchF - 1) * 10)}Hz`;
 
-    // Генерируем аудио
-    const communicate = new edgeTTS.default.Communicate(textToSpeak, voice, {
-      rate: rateStr,
-      pitch: pitchStr
-    });
+    // Временный файл
+    const tmpFile = join(tmpdir(), `tts_${Date.now()}.mp3`);
 
-    const chunks = [];
-    
-    for await (const chunk of communicate.stream()) {
-      if (chunk.type === 'audio') {
-        chunks.push(chunk.data);
-      }
+    try {
+      // Экранируем текст для команды
+      const escapedText = textToSpeak.replace(/"/g, '\\"').replace(/`/g, '\\`');
+      
+      // Вызываем edge-tts через Python
+      const command = `python3 -m edge_tts --text "${escapedText}" --voice "${voice}" --rate "${rateStr}" --pitch "${pitchStr}" --write-media "${tmpFile}"`;
+      
+      await execAsync(command, { 
+        timeout: 30000,
+        maxBuffer: 10 * 1024 * 1024 // 10MB
+      });
+
+      // Читаем файл
+      const audioBuffer = await readFile(tmpFile);
+      const base64Audio = audioBuffer.toString('base64');
+
+      // Удаляем временный файл
+      await unlink(tmpFile);
+
+      return res.status(200).json({ audio: base64Audio });
+
+    } catch (error) {
+      // Очищаем временный файл при ошибке
+      try {
+        await unlink(tmpFile);
+      } catch {}
+      
+      throw error;
     }
-
-    // Объединяем все чанки
-    const audioBuffer = Buffer.concat(chunks);
-    const base64Audio = audioBuffer.toString('base64');
-
-    return res.status(200).json({ audio: base64Audio });
 
   } catch (error) {
     console.error('TTS Error:', error);
     return res.status(500).json({ 
       error: error.message,
-      details: error.stack 
+      details: error.stderr || error.stdout
     });
   }
 }

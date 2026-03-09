@@ -1,4 +1,10 @@
 {
+  "builds": [
+    {
+      "src": "requirements.txt",
+      "use": "@vercel/python"
+    }
+  ],
   "functions": {
     "api/tts.js": {
       "maxDuration": 30
