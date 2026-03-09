@@ -1,19 +1,31 @@
 {
   "builds": [
     {
-      "src": "requirements.txt",
-      "use": "@vercel/python"
+      "src": "package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "dist"
+      }
     }
   ],
   "functions": {
     "api/tts.js": {
-      "maxDuration": 30
+      "runtime": "nodejs20.x",
+      "maxDuration": 30,
+      "includeFiles": "requirements.txt"
     }
   },
-  "rewrites": [
+  "routes": [
     {
-      "source": "/(.*)",
-      "destination": "/index.html"
+      "src": "/api/(.*)",
+      "dest": "/api/$1"
+    },
+    {
+      "handle": "filesystem"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
     }
   ]
 }
